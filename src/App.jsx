@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import { nanoid } from "nanoid";
 import "./App.css";
-import { FaSearch, FaStar } from "react-icons/fa";
-import { FaCartShopping } from "react-icons/fa6";
+import { FaSearch, FaStar, FaBus } from "react-icons/fa";
 import { BiTrash } from "react-icons/bi";
 import Logo from "./assets/logotipo.png";
 
@@ -71,11 +70,12 @@ function App() {
                     </div>
                 )}
             </div>
+            <section className="px-8">
             {busStop.services?.map((service) => {
                 return (
                     <div
                         key={nanoid()}
-                        className="border border-solid border-black"
+                        className=""
                     >
                         {service.valid ? (
                             <>
@@ -83,9 +83,12 @@ function App() {
                                     return (
                                         <div
                                             key={nanoid()}
-                                            className="flex border border-solid border-black"
+                                            className="flex border-b border-neutral-300"
                                         >
-                                            <p>{service.id}</p>
+                                            <div className="flex px-3 py-2 rounded-full items-center bg-black text-white">
+                                                <FaBus className="text-lg mr-2" />
+                                                <p className="font-medium">{service.id}</p>
+                                            </div>
                                             <p>{bus.id}</p>
                                             <p>
                                                 {bus.min_arrival_time} -
@@ -110,6 +113,8 @@ function App() {
                     </div>
                 );
             })}
+            </section>
+
         </div>
     );
 }
