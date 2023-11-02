@@ -1,127 +1,116 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { nanoid } from "nanoid";
-import initialItems from "./items";
 import "./App.css";
-import { FaSearch, FaListUl } from "react-icons/fa";
+import { FaSearch, FaStar } from "react-icons/fa";
 import { FaCartShopping } from "react-icons/fa6";
 import { BiTrash } from "react-icons/bi";
+import Logo from "./assets/logotipo.png";
 
 function App() {
-    const [items, setItems] = useState(initialItems);
-    const [newItem, setNewItem] = useState("");
-    const [search, setSearch] = useState("");
+    const API_BASE_URL = "https://api.xor.cl/red/bus-stop/";
+    const [busStop, setBusStop] = useState([]);
+    const [date, setDate] = useState([]);
+    const [inputValue, setInputValue] = useState("");
+    const [error, setError] = useState(null);
 
-    const onSubmit = (e) => {
+    const onFormSubmit = (e) => {
         e.preventDefault();
-        if (newItem === "") return;
-        setItems([
-            ...items,
-            {
-                id: nanoid(),
-                name: newItem,
-                completed: false,
-            },
-        ]);
-        setNewItem("");
-    };
+        const URL = API_BASE_URL + inputValue;
 
-    const onDelete = (id) => {
-        confirm("Are you sure you want to delete this item?") &&
-            setItems(items.filter((item) => item.id !== id));
-    };
-
-    const onComplete = (id) => {
-        setItems(
-            items.map((item) => {
-                return item.id === id
-                    ? { ...item, completed: !item.completed }
-                    : item;
+        fetch(URL)
+            .then(async (response) => {
+                if (!response.ok) {
+                    throw new Error("Error al obtener datos de la API");
+                }
+                return await response.json();
             })
-        );
+            .then((data) => {
+                setBusStop(data);
+                setError(null);
+            })
+            .catch((error) => {
+                setError(error.message);
+                setBusStop([]);
+            });
     };
-
-    const searcher = (items) => {
-        return items.filter((item) =>
-            item.name.toLowerCase().includes(search.trim())
-        );
-    };
-
-    const itemClasses =
-        "font-medium cursor-pointer truncate overflow-hidden w-[420px]";
 
     return (
-        <section className="w-[600px] h-screen flex justify-center items-center">
-            <div className="bg-neutral-50 rounded-xl shadow-lg border h-[600px] w-full flex flex-col justify-between">
-                <div>
-                    <div className="flex items-center ml-8">
-                        <div className="flex items-center">
-                            <FaCartShopping className="text-3xl text-sky-500 mr-2" />
-                            <h1 className="text-3xl font-bold whitespace-nowrap text-sky-500">
-                                Shopping List
-                            </h1>
-                        </div>
-                        <div className="flex items-center w-full m-8">
-                            <FaSearch className="absolute pointer-events-none ml-5 text-neutral-500" />
-                            <input
-                                type="text"
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
-                                placeholder="Search"
-                                className="bg-neutral-50 border-neutral-300 border rounded-lg py-3 px-12 w-full"
-                            />
-                        </div>
-                    </div>
-                    <ul className="h-[370px] overflow-y-scroll">
-                        {searcher(items).map((item, index) => (
-                            <li
-                                key={item.id}
-                                className="flex justify-between items-center first:border-t border-b border-neutral-300 py-4"
-                            >
-                                <div className="flex items-center mx-8">
-                                    <p className="mr-3 text-xs">{index + 1}</p>
-                                    <p
-                                        onClick={() => onComplete(item.id)}
-                                        className={`${itemClasses} ${
-                                            item.completed &&
-                                            "line-through text-slate-400"
-                                        }`}
-                                    >
-                                        {item.name}
-                                    </p>
-                                </div>
-                                <button
-                                    className="mx-8 text-lg text-neutral-500"
-                                    onClick={() => onDelete(item.id)}
-                                >
-                                    <BiTrash />
-                                </button>
-                            </li>
-                        ))}
-                    </ul>
-                </div>
+        <div className="container mx-auto min-h-screen p-8">
+            <header className="flex justify-between items-center">
+                <img src={Logo} alt="logo" />
                 <form
-                    onSubmit={onSubmit}
-                    className="flex items-center w-auto m-8"
+                    onSubmit={onFormSubmit}
+                    className="flex items-center"
                 >
-                    <FaListUl className="absolute pointer-events-none ml-5 text-neutral-500" />
+                    <FaSearch className="absolute pointer-events-none ml-5 text-neutral-500" />
                     <input
                         type="text"
-                        value={newItem}
-                        onChange={(e) => setNewItem(e.target.value)}
-                        placeholder="Add new item"
-                        className="bg-neutral-50 border-neutral-300 border rounded-lg py-3 px-12 w-full mr-3"
-                        autoFocus
+                        placeholder="Ingresa el paradero"
+                        className="bg-neutral-50 border-neutral-300 border rounded-lg py-3 px-12 mr-3 w-96"
+                        onChange={(e) => setInputValue(e.target.value)}
                     />
                     <button
-                        className="bg-sky-500 text-neutral-50 rounded-lg py-3 px-5"
+                        className="bg-[#CF152D] text-neutral-50 rounded-lg py-3 px-5"
                         type="submit"
                     >
-                        Add
+                        Buscar
                     </button>
                 </form>
+                <button className="flex items-center">
+                    <FaStar className="text-[#CF152D] text-xl mr-2"/>
+                    <p className="text-lg">Ver Favoritos</p>
+                </button>
+            </header>
+            <div className="flex bg-slate-200 my-6 p-8 rounded-xl">
+                {error ? (
+                    <p>{error}</p>
+                ) : (
+                    <div className="flex items-center gap-6">
+                        <p className="bg-neutral-500 text-white font-medium py-2 px-3 rounded-full">{busStop.id}</p>
+                        <h2 className="text-xl">{busStop.name}</h2>
+                    </div>
+                )}
             </div>
-        </section>
+            {busStop.services?.map((service) => {
+                return (
+                    <div
+                        key={nanoid()}
+                        className="border border-solid border-black"
+                    >
+                        {service.valid ? (
+                            <>
+                                {service.buses.map((bus) => {
+                                    return (
+                                        <div
+                                            key={nanoid()}
+                                            className="flex border border-solid border-black"
+                                        >
+                                            <p>{service.id}</p>
+                                            <p>{bus.id}</p>
+                                            <p>
+                                                {bus.min_arrival_time} -
+                                                {bus.max_arrival_time} min.
+                                            </p>
+                                            <p>
+                                                {(
+                                                    bus.meters_distance / 1000
+                                                ).toFixed(1)}{" "}
+                                                km
+                                            </p>
+                                        </div>
+                                    );
+                                })}
+                            </>
+                        ) : (
+                            <div className="flex">
+                                <p>{service.id}</p>
+                                <p>{service.status_description}</p>
+                            </div>
+                        )}
+                    </div>
+                );
+            })}
+        </div>
     );
 }
-
 export default App;
